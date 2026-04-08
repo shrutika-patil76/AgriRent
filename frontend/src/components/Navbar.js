@@ -31,6 +31,9 @@ const Navbar = () => {
                 <Nav.Link as={Link} to="/dashboard" style={{ fontSize: '1.1rem', padding: '0.5rem 1.25rem', fontWeight: '500' }}>
                   <FaUser className="me-1" style={{ fontSize: '1rem' }} /> Dashboard
                 </Nav.Link>
+                <Nav.Link as={Link} to="/profile" style={{ fontSize: '1.1rem', padding: '0.5rem 1.25rem', fontWeight: '500' }}>
+                  👤 Profile
+                </Nav.Link>
                 {user.role === 'admin' && (
                   <Nav.Link as={Link} to="/admin" style={{ fontSize: '1.1rem', padding: '0.5rem 1.25rem', fontWeight: '500' }}>Admin Panel</Nav.Link>
                 )}

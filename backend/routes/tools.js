@@ -58,8 +58,22 @@ router.post('/', auth, upload.array('images', 5), async (req, res) => {
       }
     }
 
+    // Fetch owner's address and coordinates
+    const User = require('../models/User');
+    const owner = await User.findById(req.user.id);
+    
+    if (!owner) {
+      return res.status(404).json({ message: 'Owner not found' });
+    }
+
     const tool = new Tool({
-      ...req.body,
+      name: req.body.name,
+      description: req.body.description,
+      category: req.body.category,
+      pricePerDay: req.body.pricePerDay,
+      deposit: req.body.deposit,
+      location: owner.address, // Use owner's address
+      coordinates: owner.coordinates, // Use owner's coordinates
       specifications,
       images: imagePaths,
       owner: req.user.id
@@ -112,6 +126,40 @@ router.delete('/:id', auth, async (req, res) => {
 
     await tool.deleteOne();
     res.json({ message: 'Tool deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Admin: Update tool coordinates from owner's profile
+router.post('/:id/sync-coordinates', auth, async (req, res) => {
+  try {
+    const User = require('../models/User');
+    
+    const tool = await Tool.findById(req.params.id).populate('owner');
+    if (!tool) {
+      return res.status(404).json({ message: 'Tool not found' });
+    }
+
+    // Get owner's current coordinates
+    const owner = await User.findById(tool.owner._id);
+    if (!owner || !owner.coordinates) {
+      return res.status(400).json({ message: 'Owner has no coordinates' });
+    }
+
+    // Update tool with owner's coordinates
+    tool.coordinates = owner.coordinates;
+    tool.location = owner.address;
+    await tool.save();
+
+    res.json({
+      message: 'Tool coordinates synced successfully',
+      tool: {
+        name: tool.name,
+        location: tool.location,
+        coordinates: tool.coordinates
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

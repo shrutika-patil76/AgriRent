@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
+const auth = require('../middleware/auth');
 
 // Register
 router.post('/register', [
@@ -61,7 +62,8 @@ router.post('/register', [
       password: hashedPassword,
       role,
       phone,
-      address
+      address,
+      coordinates: req.body.coordinates || null
     });
 
     await user.save();
@@ -130,6 +132,209 @@ router.post('/login', [
         name: user.name,
         email: user.email,
         role: user.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get current user
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Admin: Update all users with coordinates
+router.post('/admin/update-coordinates', auth, async (req, res) => {
+  try {
+    // Check if user is admin
+    const user = await User.findById(req.user.id);
+    if (user.role !== 'admin') {
+      return res.status(403).json({ message: 'Only admins can perform this action' });
+    }
+
+    const userCoordinates = {
+      'rajesh.kumar@gmail.com': { latitude: 16.8056, longitude: 74.6568 },
+      'amit.singh@gmail.com': { latitude: 16.8186, longitude: 74.7597 },
+      'suresh.patel@gmail.com': { latitude: 16.7500, longitude: 74.5500 },
+      'ramesh.verma@gmail.com': { latitude: 16.9500, longitude: 74.8000 },
+      'admin@agrirent.com': { latitude: 16.7000, longitude: 74.4000 },
+      'vijay.sharma@gmail.com': { latitude: 16.6500, longitude: 74.3500 }
+    };
+
+    let updated = 0;
+    const results = [];
+
+    for (const [email, coordinates] of Object.entries(userCoordinates)) {
+      const result = await User.updateOne(
+        { email },
+        { $set: { coordinates } }
+      );
+      
+      if (result.modifiedCount > 0) {
+        updated++;
+        results.push({ email, status: 'updated', coordinates });
+      } else {
+        results.push({ email, status: 'not found or already updated' });
+      }
+    }
+
+    res.json({
+      message: `Updated ${updated} users with coordinates`,
+      results
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Admin: Update specific user with coordinates
+router.post('/admin/update-user-coordinates', auth, async (req, res) => {
+  try {
+    // Check if user is admin
+    const user = await User.findById(req.user.id);
+    if (user.role !== 'admin') {
+      return res.status(403).json({ message: 'Only admins can perform this action' });
+    }
+
+    const { email, latitude, longitude } = req.body;
+
+    if (!email || latitude === undefined || longitude === undefined) {
+      return res.status(400).json({ message: 'Email, latitude, and longitude are required' });
+    }
+
+    // Get location name from coordinates using reverse geocoding
+    const reverseGeocode = require('../utils/reverseGeocode');
+    const locationName = await reverseGeocode(latitude, longitude);
+
+    const result = await User.updateOne(
+      { email },
+      { $set: { 
+        coordinates: { latitude, longitude },
+        address: locationName
+      } }
+    );
+
+    if (result.modifiedCount > 0) {
+      res.json({
+        message: 'User coordinates updated successfully',
+        email,
+        address: locationName,
+        coordinates: { latitude, longitude }
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get location name from coordinates
+router.post('/get-location-name', async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+
+    if (latitude === undefined || longitude === undefined) {
+      return res.status(400).json({ message: 'Latitude and longitude are required' });
+    }
+
+    const reverseGeocode = require('../utils/reverseGeocode');
+    const locationName = await reverseGeocode(latitude, longitude);
+
+    res.json({
+      locationName,
+      coordinates: { latitude, longitude }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Quick fix: Update current user's coordinates
+router.post('/update-my-coordinates', auth, async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+
+    console.log('📝 Update coordinates request:');
+    console.log(`   User ID: ${req.user.id}`);
+    console.log(`   Latitude: ${latitude} (type: ${typeof latitude})`);
+    console.log(`   Longitude: ${longitude} (type: ${typeof longitude})`);
+
+    if (latitude === undefined || longitude === undefined) {
+      return res.status(400).json({ message: 'Latitude and longitude are required' });
+    }
+
+    // Get location name from coordinates using reverse geocoding
+    const reverseGeocode = require('../utils/reverseGeocode');
+    const locationName = await reverseGeocode(latitude, longitude);
+
+    console.log(`   Location name: ${locationName}`);
+
+    // Update user with coordinates
+    const result = await User.findByIdAndUpdate(
+      req.user.id,
+      { 
+        $set: { 
+          coordinates: { 
+            latitude: Number(latitude), 
+            longitude: Number(longitude) 
+          },
+          address: locationName
+        }
+      },
+      { new: true }
+    );
+
+    console.log('✅ Update result:');
+    console.log(`   Modified: ${result ? 'Yes' : 'No'}`);
+    console.log(`   Coordinates saved: ${JSON.stringify(result?.coordinates)}`);
+
+    if (result) {
+      res.json({
+        message: 'Your coordinates updated successfully',
+        address: locationName,
+        coordinates: { latitude: result.coordinates.latitude, longitude: result.coordinates.longitude }
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error('❌ Error updating coordinates:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Diagnostic: Check current user's data
+router.get('/me/debug', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    console.log('🔍 User debug info:', {
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      address: user.address,
+      coordinates: user.coordinates,
+      coordinatesType: typeof user.coordinates,
+      hasLatitude: user.coordinates?.latitude !== undefined,
+      hasLongitude: user.coordinates?.longitude !== undefined
+    });
+    
+    res.json({
+      user,
+      hasCoordinates: !!(user.coordinates && user.coordinates.latitude && user.coordinates.longitude),
+      coordinatesValue: user.coordinates,
+      debug: {
+        coordinatesType: typeof user.coordinates,
+        hasLatitude: user.coordinates?.latitude !== undefined,
+        hasLongitude: user.coordinates?.longitude !== undefined,
+        latitudeValue: user.coordinates?.latitude,
+        longitudeValue: user.coordinates?.longitude
       }
     });
   } catch (error) {

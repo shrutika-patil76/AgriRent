@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Container, Row, Col, Button, Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FaTractor, FaSearch, FaCalendarAlt, FaStar, FaShieldAlt, FaHeadset } from 'react-icons/fa';
+import { FaTractor, FaSearch, FaCalendarAlt, FaStar, FaShieldAlt, FaHeadset, FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 import { AuthContext } from '../context/AuthContext';
 
 const Home = () => {
@@ -340,10 +340,10 @@ const Home = () => {
                   Making agricultural equipment accessible to all farmers. Empowering agriculture through technology.
                 </p>
                 <div className="social-links">
-                  <a href="#" className="social-link"><i className="fab fa-facebook"></i></a>
-                  <a href="#" className="social-link"><i className="fab fa-twitter"></i></a>
-                  <a href="#" className="social-link"><i className="fab fa-instagram"></i></a>
-                  <a href="#" className="social-link"><i className="fab fa-linkedin"></i></a>
+                  <a href="#" className="social-link"><FaFacebook /></a>
+                  <a href="#" className="social-link"><FaTwitter /></a>
+                  <a href="#" className="social-link"><FaInstagram /></a>
+                  <a href="#" className="social-link"><FaLinkedin /></a>
                 </div>
               </div>
             </Col>
@@ -369,9 +369,9 @@ const Home = () => {
             <Col md={3}>
               <h5 className="fw-bold mb-3">Contact Us</h5>
               <ul className="footer-contact">
-                <li><i className="fas fa-envelope me-2"></i> info@agrirent.com</li>
-                <li><i className="fas fa-phone me-2"></i> +91-1800-123-4567</li>
-                <li><i className="fas fa-map-marker-alt me-2"></i> Delhi, India</li>
+                <li><FaEnvelope className="me-2" /> info@agrirent.com</li>
+                <li><FaPhone className="me-2" /> +91-1800-123-4567</li>
+                <li><FaMapMarkerAlt className="me-2" /> Delhi, India</li>
               </ul>
             </Col>
           </Row>

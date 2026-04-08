@@ -10,6 +10,8 @@ import ToolListing from './pages/ToolListing';
 import ToolDetails from './pages/ToolDetails';
 import Dashboard from './pages/Dashboard';
 import AdminPanel from './pages/AdminPanel';
+import AdminUpdateCoordinates from './pages/AdminUpdateCoordinates';
+import Profile from './pages/Profile';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
 
@@ -26,7 +28,9 @@ function App() {
             <Route path="/tools" element={<ToolListing />} />
             <Route path="/tools/:id" element={<ToolDetails />} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
             <Route path="/admin" element={<PrivateRoute><AdminPanel /></PrivateRoute>} />
+            <Route path="/admin/update-coordinates" element={<PrivateRoute><AdminUpdateCoordinates /></PrivateRoute>} />
           </Routes>
           <ToastContainer position="top-right" autoClose={3000} />
         </div>

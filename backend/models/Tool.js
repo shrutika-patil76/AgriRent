@@ -34,6 +34,16 @@ const toolSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  coordinates: {
+    latitude: {
+      type: Number,
+      default: null
+    },
+    longitude: {
+      type: Number,
+      default: null
+    }
+  },
   available: {
     type: Boolean,
     default: true

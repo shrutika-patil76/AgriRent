@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Container, Row, Col, Card, Button, Form, Badge, ListGroup } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaStar, FaMapMarkerAlt, FaUser, FaPhone } from 'react-icons/fa';
+import { FaStar, FaUser, FaPhone } from 'react-icons/fa';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { AuthContext } from '../context/AuthContext';
+import LocationDisplay from '../components/LocationDisplay';
 
 const ToolDetails = () => {
   const { id } = useParams();
@@ -122,7 +123,7 @@ const ToolDetails = () => {
             <Card.Img
               variant="top"
               src={tool.images && tool.images.length > 0 
-                ? (tool.images[0].startsWith('http') 
+                ? (tool.images[0].startsWith('http') || tool.images[0].startsWith('data:')
                     ? tool.images[0] 
                     : `http://localhost:5000${tool.images[0]}`)
                 : 'https://via.placeholder.com/800x400?text=Equipment'}
@@ -136,9 +137,10 @@ const ToolDetails = () => {
               <div className="rating-stars mb-3">
                 <FaStar /> {tool.rating.toFixed(1)} ({tool.reviewCount} reviews)
               </div>
-              <p className="text-muted mb-3">
-                <FaMapMarkerAlt /> {tool.location}
-              </p>
+              <LocationDisplay 
+                latitude={tool.coordinates?.latitude} 
+                longitude={tool.coordinates?.longitude}
+              />
               <div className="mb-3">
                 <h4 className="text-primary mb-2">₹{tool.pricePerDay}/day</h4>
                 <p className="text-muted mb-0">

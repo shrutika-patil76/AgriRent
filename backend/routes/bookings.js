@@ -2,15 +2,16 @@ const express = require('express');
 const router = express.Router();
 const Booking = require('../models/Booking');
 const Tool = require('../models/Tool');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
-const { sendBookingConfirmationEmail, sendBookingRejectionEmail } = require('../utils/emailService');
+const { sendBookingConfirmationEmail, sendBookingRejectionEmail, sendBookingRequestEmail } = require('../utils/emailService');
 
 // Create booking
 router.post('/', auth, async (req, res) => {
   try {
     const { toolId, startDate, endDate } = req.body;
 
-    const tool = await Tool.findById(toolId);
+    const tool = await Tool.findById(toolId).populate('owner');
     if (!tool) {
       return res.status(404).json({ message: 'Tool not found' });
     }
@@ -63,8 +64,19 @@ router.post('/', auth, async (req, res) => {
     });
 
     await booking.save();
+
+    // Send email notification to tool owner about new booking request
+    try {
+      const farmer = await User.findById(req.user.id);
+      console.log(`📧 Sending booking request email to owner: ${tool.owner.email}`);
+      await sendBookingRequestEmail(booking, farmer, tool, tool.owner);
+    } catch (emailError) {
+      console.error('⚠️ Email sending failed (but booking was created):', emailError.message);
+    }
+
     res.status(201).json(booking);
   } catch (error) {
+    console.error('❌ Booking creation error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -160,12 +172,24 @@ router.patch('/:id/status', auth, async (req, res) => {
     }
 
     // Owners and admins can change any status
-    if (!isOwner && !isAdmin) {
+    if (!isOwner && !isAdmin && !isFarmer) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
     const oldStatus = booking.status;
     booking.status = status;
+    
+    // Track who cancelled the booking
+    if (status === 'cancelled' && oldStatus !== 'cancelled') {
+      if (isFarmer && !isOwner) {
+        booking.cancelledBy = 'farmer';
+      } else if (isOwner && !isFarmer) {
+        booking.cancelledBy = 'owner';
+      } else if (isAdmin) {
+        booking.cancelledBy = 'admin';
+      }
+    }
+    
     await booking.save();
     
     const populatedBooking = await Booking.findById(booking._id)
@@ -179,20 +203,45 @@ router.patch('/:id/status', auth, async (req, res) => {
       });
     
     // Send email notifications based on status change
-    if (status === 'confirmed' && oldStatus === 'pending') {
-      // Send confirmation email to farmer
-      await sendBookingConfirmationEmail(
-        populatedBooking,
-        populatedBooking.user,
-        populatedBooking.tool
-      );
-    } else if (status === 'cancelled') {
-      // Send cancellation email to farmer
-      await sendBookingRejectionEmail(
-        populatedBooking,
-        populatedBooking.user,
-        populatedBooking.tool
-      );
+    try {
+      if (status === 'confirmed' && oldStatus === 'pending') {
+        // Send confirmation email to farmer
+        await sendBookingConfirmationEmail(
+          populatedBooking,
+          populatedBooking.user,
+          populatedBooking.tool
+        );
+      } else if (status === 'cancelled') {
+        // Check who cancelled
+        if (booking.cancelledBy === 'farmer') {
+          // Farmer cancelled - send different emails
+          console.log(`📧 Farmer cancelled booking - Notifying both parties`);
+          
+          // Send confirmation to farmer that their cancellation was successful
+          const emailService = require('../utils/emailService');
+          await emailService.sendFarmerCancellationConfirmationEmail(
+            populatedBooking,
+            populatedBooking.user
+          );
+          
+          // Send notification to owner about farmer cancellation
+          await emailService.sendFarmerCancellationEmail(
+            populatedBooking,
+            populatedBooking.tool.owner,
+            populatedBooking.user
+          );
+        } else {
+          // Owner or admin cancelled - send rejection email to farmer
+          await sendBookingRejectionEmail(
+            populatedBooking,
+            populatedBooking.user,
+            populatedBooking.tool
+          );
+        }
+      }
+    } catch (emailError) {
+      console.error('⚠️ Email sending failed (but booking status was updated):', emailError.message);
+      // Don't fail the status update if email fails
     }
     
     res.json(populatedBooking);

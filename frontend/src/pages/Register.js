@@ -4,7 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import { FaUser, FaEnvelope, FaLock, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import AddressMapPicker from '../components/AddressMapPicker';
+import { FaUser, FaEnvelope, FaLock, FaPhone } from 'react-icons/fa';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -13,7 +14,8 @@ const Register = () => {
     password: '',
     role: 'farmer',
     phone: '',
-    address: ''
+    address: '',
+    coordinates: null
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -181,20 +183,22 @@ const Register = () => {
                   </Form.Text>
                 </Form.Group>
 
-                <Form.Group className="mb-3">
-                  <Form.Label><FaMapMarkerAlt className="me-2" />Address</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    placeholder="Enter your address"
-                    isInvalid={!!errors.address}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.address}
-                  </Form.Control.Feedback>
-                </Form.Group>
+                <AddressMapPicker 
+                  onAddressSelect={(address, coordinates) => {
+                    setFormData({ 
+                      ...formData, 
+                      address,
+                      coordinates: coordinates ? { latitude: coordinates.lat, longitude: coordinates.lng } : null
+                    });
+                    if (errors.address) {
+                      setErrors({ ...errors, address: '' });
+                    }
+                  }}
+                  initialAddress={formData.address}
+                />
+                {errors.address && (
+                  <div className="text-danger small mb-3">{errors.address}</div>
+                )}
 
                 <Form.Group className="mb-4">
                   <Form.Label>I am a</Form.Label>
