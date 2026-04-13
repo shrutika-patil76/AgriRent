@@ -4,7 +4,13 @@ const Booking = require('../models/Booking');
 const Tool = require('../models/Tool');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
-const { sendBookingConfirmationEmail, sendBookingRejectionEmail, sendBookingRequestEmail } = require('../utils/emailService');
+const { 
+  sendBookingConfirmationEmail, 
+  sendBookingRejectionEmail, 
+  sendBookingRequestEmail,
+  sendFarmerCancellationConfirmationEmail,
+  sendFarmerCancellationEmail
+} = require('../utils/emailService');
 
 // Create booking
 router.post('/', auth, async (req, res) => {
@@ -218,14 +224,13 @@ router.patch('/:id/status', auth, async (req, res) => {
           console.log(`📧 Farmer cancelled booking - Notifying both parties`);
           
           // Send confirmation to farmer that their cancellation was successful
-          const emailService = require('../utils/emailService');
-          await emailService.sendFarmerCancellationConfirmationEmail(
+          await sendFarmerCancellationConfirmationEmail(
             populatedBooking,
             populatedBooking.user
           );
           
           // Send notification to owner about farmer cancellation
-          await emailService.sendFarmerCancellationEmail(
+          await sendFarmerCancellationEmail(
             populatedBooking,
             populatedBooking.tool.owner,
             populatedBooking.user

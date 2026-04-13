@@ -240,9 +240,14 @@ const Dashboard = () => {
                           <td className="text-end fw-bold text-primary">₹{booking.totalAmount + booking.deposit}</td>
                           <td className="text-center">
                             {getStatusBadge(booking.status)}
-                            {booking.status === 'cancelled' && (
+                            {booking.status === 'cancelled' && booking.cancelledBy === 'owner' && (
                               <div className="text-danger small mt-2">
                                 <small>❌ Rejected by owner</small>
+                              </div>
+                            )}
+                            {booking.status === 'cancelled' && booking.cancelledBy === 'farmer' && (
+                              <div className="text-warning small mt-2">
+                                <small>⚠️ Cancelled by you</small>
                               </div>
                             )}
                           </td>

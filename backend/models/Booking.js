@@ -38,8 +38,20 @@ const bookingSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'paid', 'refunded'],
+    enum: ['pending', 'deposit_paid', 'rent_paid', 'completed', 'refunded'],
     default: 'pending'
+  },
+  depositPaid: {
+    type: Boolean,
+    default: false
+  },
+  rentPaid: {
+    type: Boolean,
+    default: false
+  },
+  remainingAmount: {
+    type: Number,
+    default: 0
   },
   cancelledBy: {
     type: String,
