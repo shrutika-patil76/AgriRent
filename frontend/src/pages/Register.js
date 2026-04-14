@@ -15,10 +15,13 @@ const Register = () => {
     role: 'farmer',
     phone: '',
     address: '',
-    coordinates: null
+    coordinates: null,
+    upiId: '',
+    paymentQR: null
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [qrPreview, setQrPreview] = useState(null);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -64,6 +67,19 @@ const Register = () => {
       newErrors.address = 'Address must be at least 10 characters';
     }
 
+    // Tool owner specific validation
+    if (formData.role === 'owner') {
+      if (!formData.upiId.trim()) {
+        newErrors.upiId = 'UPI ID is required for tool owners';
+      } else if (!/^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$/.test(formData.upiId)) {
+        newErrors.upiId = 'Please enter a valid UPI ID (e.g., name@upi)';
+      }
+
+      if (!formData.paymentQR) {
+        newErrors.paymentQR = 'Payment QR code is required for tool owners';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -74,6 +90,34 @@ const Register = () => {
     // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
+    }
+  };
+
+  const handleQRUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setErrors({ ...errors, paymentQR: 'Please upload an image file' });
+        return;
+      }
+
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setErrors({ ...errors, paymentQR: 'File size must be less than 2MB' });
+        return;
+      }
+
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, paymentQR: reader.result });
+        setQrPreview(reader.result);
+        if (errors.paymentQR) {
+          setErrors({ ...errors, paymentQR: '' });
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -207,6 +251,59 @@ const Register = () => {
                     <option value="owner">Equipment Owner (List Equipment)</option>
                   </Form.Select>
                 </Form.Group>
+
+                {/* Tool Owner Payment Details */}
+                {formData.role === 'owner' && (
+                  <>
+                    <hr className="my-4" />
+                    <h5 className="mb-3 text-primary">💳 Payment Details (Required for Tool Owners)</h5>
+                    
+                    <Form.Group className="mb-3">
+                      <Form.Label>UPI ID</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="upiId"
+                        value={formData.upiId}
+                        onChange={handleChange}
+                        placeholder="e.g., yourname@upi"
+                        isInvalid={!!errors.upiId}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.upiId}
+                      </Form.Control.Feedback>
+                      <Form.Text className="text-muted">
+                        Your UPI ID for receiving payments from farmers
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>Payment QR Code</Form.Label>
+                      <Form.Control
+                        type="file"
+                        accept="image/*"
+                        onChange={handleQRUpload}
+                        isInvalid={!!errors.paymentQR}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.paymentQR}
+                      </Form.Control.Feedback>
+                      <Form.Text className="text-muted">
+                        Upload your UPI QR code (JPG, PNG, etc. - Max 2MB)
+                      </Form.Text>
+                      {qrPreview && (
+                        <div className="mt-3">
+                          <p className="text-success small">✅ QR Code uploaded</p>
+                          <img 
+                            src={qrPreview} 
+                            alt="QR Preview" 
+                            style={{ maxWidth: '150px', border: '2px solid #28a745', borderRadius: '5px' }}
+                          />
+                        </div>
+                      )}
+                    </Form.Group>
+                    <hr className="my-4" />
+                  </>
+                )}
 
                 <Button variant="primary" type="submit" className="w-100 mb-3" disabled={loading}>
                   {loading ? 'Creating Account...' : 'Sign Up'}

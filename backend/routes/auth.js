@@ -47,7 +47,17 @@ router.post('/register', [
       });
     }
 
-    const { name, email, password, role, phone, address } = req.body;
+    const { name, email, password, role, phone, address, upiId, paymentQR } = req.body;
+
+    // Validate tool owner specific fields
+    if (role === 'owner') {
+      if (!upiId || !upiId.trim()) {
+        return res.status(400).json({ message: 'UPI ID is required for tool owners' });
+      }
+      if (!paymentQR) {
+        return res.status(400).json({ message: 'Payment QR code is required for tool owners' });
+      }
+    }
 
     let user = await User.findOne({ email });
     if (user) {
@@ -63,7 +73,9 @@ router.post('/register', [
       role,
       phone,
       address,
-      coordinates: req.body.coordinates || null
+      coordinates: req.body.coordinates || null,
+      upiId: role === 'owner' ? upiId.trim() : null,
+      paymentQR: role === 'owner' ? paymentQR : null
     });
 
     await user.save();
@@ -335,6 +347,36 @@ router.get('/me/debug', auth, async (req, res) => {
         hasLongitude: user.coordinates?.longitude !== undefined,
         latitudeValue: user.coordinates?.latitude,
         longitudeValue: user.coordinates?.longitude
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update payment QR and UPI ID for owners
+router.post('/update-payment-qr', auth, async (req, res) => {
+  try {
+    const { paymentQR, upiId } = req.body;
+
+    if (!paymentQR || !upiId) {
+      return res.status(400).json({ message: 'Payment QR and UPI ID are required' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { paymentQR, upiId },
+      { new: true }
+    );
+
+    res.json({
+      message: 'Payment details updated successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        paymentQR: user.paymentQR ? 'QR Code Set' : 'Not Set',
+        upiId: user.upiId
       }
     });
   } catch (error) {

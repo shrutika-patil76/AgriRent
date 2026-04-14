@@ -204,18 +204,19 @@ router.patch('/:id/status', auth, async (req, res) => {
         path: 'tool',
         populate: {
           path: 'owner',
-          select: 'name phone email'
+          select: 'name phone email paymentQR upiId'
         }
       });
     
     // Send email notifications based on status change
     try {
       if (status === 'confirmed' && oldStatus === 'pending') {
-        // Send confirmation email to farmer
+        // Send confirmation email to farmer with owner's payment QR
         await sendBookingConfirmationEmail(
           populatedBooking,
           populatedBooking.user,
-          populatedBooking.tool
+          populatedBooking.tool,
+          populatedBooking.tool.owner
         );
       } else if (status === 'cancelled') {
         // Check who cancelled

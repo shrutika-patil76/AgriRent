@@ -5,6 +5,7 @@ import { FaTools, FaCalendarAlt, FaPlus, FaMapMarkerAlt, FaStar, FaImage } from 
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { AuthContext } from '../context/AuthContext';
+import PaymentModal from '../components/PaymentModal';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
@@ -13,6 +14,9 @@ const Dashboard = () => {
   const [ownerBookings, setOwnerBookings] = useState([]);
   const [tools, setTools] = useState([]);
   const [showAddTool, setShowAddTool] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedBookingForPayment, setSelectedBookingForPayment] = useState(null);
+  const [paymentType, setPaymentType] = useState('deposit');
   const [newTool, setNewTool] = useState({
     name: '',
     description: '',
@@ -92,6 +96,12 @@ const Dashboard = () => {
   const handleAddTool = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please login to add tools');
+        return;
+      }
+
       const formData = new FormData();
       
       formData.append('name', newTool.name);
@@ -108,7 +118,8 @@ const Dashboard = () => {
 
       await axios.post('http://localhost:5000/api/tools', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -126,7 +137,8 @@ const Dashboard = () => {
       });
       setSelectedImages([]);
     } catch (error) {
-      toast.error('Failed to add tool');
+      toast.error(error.response?.data?.message || 'Failed to add tool');
+      console.error('Add tool error:', error.response?.data);
     }
   };
 
@@ -151,11 +163,27 @@ const Dashboard = () => {
   };
 
   return (
-    <Container fluid className="py-5 dashboard-container">
-      {/* Header Section */}
-      <div className="text-center mb-5">
-        <h1 className="fw-bold display-4 mb-2">
-          {user?.role === 'farmer' ? '📅 My Bookings' : '🚜 My Equipment'}
+    <>
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <PaymentModal
+          show={showPaymentModal}
+          onHide={() => {
+            console.log('Closing modal');
+            setShowPaymentModal(false);
+            setSelectedBookingForPayment(null);
+          }}
+          booking={selectedBookingForPayment}
+          paymentType={paymentType}
+          onPaymentSuccess={fetchBookings}
+        />
+      )}
+      
+      <Container fluid className="py-5 dashboard-container">
+        {/* Header Section */}
+        <div className="text-center mb-5">
+          <h1 className="fw-bold display-4 mb-2">
+            {user?.role === 'farmer' ? '📅 My Bookings' : '🚜 My Equipment'}
         </h1>
         <p className="text-muted fs-5">Welcome back, {user?.name}!</p>
       </div>
@@ -265,11 +293,60 @@ const Dashboard = () => {
                                 Cancel
                               </Button>
                             )}
-                            {booking.status === 'cancelled' && (
-                              <span className="text-danger small">Cancelled</span>
+                            {booking.status === 'confirmed' && !booking.depositPaid && (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  variant="success"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    console.log('Pay Deposit clicked', booking);
+                                    setSelectedBookingForPayment(booking);
+                                    setPaymentType('deposit');
+                                    setShowPaymentModal(true);
+                                    console.log('Modal state set to true');
+                                  }}
+                                >
+                                  Pay Deposit
+                                </Button>
+                                <div className="text-warning small mt-1">
+                                  <small>⏳ Deposit Pending</small>
+                                </div>
+                              </>
                             )}
-                            {['confirmed', 'ongoing', 'completed'].includes(booking.status) && (
-                              <span className="text-muted">-</span>
+                            {booking.status === 'confirmed' && booking.depositPaid && !booking.rentPaid && (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  variant="info"
+                                  onClick={() => {
+                                    setSelectedBookingForPayment(booking);
+                                    setPaymentType('rent');
+                                    setShowPaymentModal(true);
+                                  }}
+                                >
+                                  Pay Rent
+                                </Button>
+                                <div className="text-success small mt-1">
+                                  <small>✅ Deposit Paid</small>
+                                </div>
+                              </>
+                            )}
+                            {booking.depositPaid && booking.rentPaid && (
+                              <div className="text-success">
+                                <small>✅ Deposit Paid</small><br/>
+                                <small>✅ Rent Paid</small>
+                              </div>
+                            )}
+                            {booking.status === 'cancelled' && (
+                              <span className="text-muted">Cancelled</span>
+                            )}
+                            {booking.status === 'completed' && (
+                              <div className="text-success">
+                                <small>✅ All Paid</small><br/>
+                                <small>🎉 Completed</small>
+                              </div>
                             )}
                           </td>
                         </tr>
@@ -310,7 +387,7 @@ const Dashboard = () => {
                     </thead>
                     <tbody>
                       {ownerBookings.map(booking => (
-                        <tr key={booking._id}>
+                        <tr key={booking._id} className={booking.status === 'cancelled' ? 'table-danger' : ''}>
                           <td className="fw-bold">{booking.tool?.name}</td>
                           <td>{booking.user?.name}</td>
                           <td>{booking.user?.phone}</td>
@@ -318,43 +395,104 @@ const Dashboard = () => {
                           <td>{new Date(booking.endDate).toLocaleDateString()}</td>
                           <td className="text-center">{booking.totalDays}</td>
                           <td className="text-end fw-bold text-primary">₹{booking.totalAmount + booking.deposit}</td>
-                          <td className="text-center">{getStatusBadge(booking.status)}</td>
+                          <td className="text-center">
+                            {getStatusBadge(booking.status)}
+                            {booking.depositPaid && (
+                              <div className="text-success small mt-1">
+                                <small>✅ Deposit Paid</small>
+                              </div>
+                            )}
+                            {booking.status === 'confirmed' && !booking.depositPaid && (
+                              <div className="text-warning small mt-1">
+                                <small>⏳ Awaiting Deposit</small>
+                              </div>
+                            )}
+                            {booking.status === 'cancelled' && booking.cancelledBy === 'farmer' && (
+                              <div className="text-warning small mt-2">
+                                <small>⚠️ Cancelled by farmer</small>
+                              </div>
+                            )}
+                          </td>
                           <td className="text-center">
                             {booking.status === 'pending' && (
-                              <div className="d-flex gap-2 justify-content-center">
+                              <>
+                                <div className="d-flex gap-2 justify-content-center mb-2">
+                                  <Button 
+                                    size="sm" 
+                                    variant="success"
+                                    onClick={() => handleBookingStatus(booking._id, 'confirmed')}
+                                  >
+                                    Approve
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="danger"
+                                    onClick={() => handleBookingStatus(booking._id, 'cancelled')}
+                                  >
+                                    Reject
+                                  </Button>
+                                </div>
+                                <div className="text-muted small">
+                                  <small>⏳ Awaiting Approval</small>
+                                </div>
+                              </>
+                            )}
+                            {booking.status === 'confirmed' && !booking.depositPaid && (
+                              <div className="text-warning">
+                                <small>⏳ Awaiting Deposit</small><br/>
+                                <small className="text-muted">Farmer needs to pay</small>
+                              </div>
+                            )}
+                            {booking.status === 'confirmed' && booking.depositPaid && (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  variant="primary"
+                                  onClick={() => handleBookingStatus(booking._id, 'ongoing')}
+                                >
+                                  Start
+                                </Button>
+                                <div className="text-success small mt-1">
+                                  <small>✅ Deposit Received</small>
+                                </div>
+                              </>
+                            )}
+                            {booking.status === 'ongoing' && !booking.rentPaid && (
+                              <>
                                 <Button 
                                   size="sm" 
                                   variant="success"
-                                  onClick={() => handleBookingStatus(booking._id, 'confirmed')}
+                                  onClick={() => handleBookingStatus(booking._id, 'completed')}
                                 >
-                                  Approve
+                                  Complete
                                 </Button>
+                                <div className="text-warning small mt-1">
+                                  <small>⏳ Awaiting Rent</small>
+                                </div>
+                              </>
+                            )}
+                            {booking.status === 'ongoing' && booking.rentPaid && (
+                              <>
                                 <Button 
                                   size="sm" 
-                                  variant="danger"
-                                  onClick={() => handleBookingStatus(booking._id, 'cancelled')}
+                                  variant="success"
+                                  onClick={() => handleBookingStatus(booking._id, 'completed')}
                                 >
-                                  Reject
+                                  Complete
                                 </Button>
+                                <div className="text-success small mt-1">
+                                  <small>✅ Rent Received</small>
+                                </div>
+                              </>
+                            )}
+                            {booking.status === 'completed' && (
+                              <div className="text-success">
+                                <small>✅ All Payments Done</small><br/>
+                                <small>🎉 Completed</small>
                               </div>
                             )}
-                            {booking.status === 'confirmed' && (
-                              <Button 
-                                size="sm" 
-                                variant="primary"
-                                onClick={() => handleBookingStatus(booking._id, 'ongoing')}
-                              >
-                                Start
-                              </Button>
-                            )}
-                            {booking.status === 'ongoing' && (
-                              <Button 
-                                size="sm" 
-                                variant="success"
-                                onClick={() => handleBookingStatus(booking._id, 'completed')}
-                              >
-                                Complete
-                              </Button>
+                            {booking.status === 'cancelled' && (
+                              <span className="text-muted">Cancelled</span>
                             )}
                           </td>
                         </tr>
@@ -701,6 +839,7 @@ const Dashboard = () => {
         </>
       )}
     </Container>
+    </>
   );
 };
 

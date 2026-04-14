@@ -36,6 +36,14 @@ const userSchema = new mongoose.Schema({
       type: Number
     }
   },
+  paymentQR: {
+    type: String,
+    default: null
+  },
+  upiId: {
+    type: String,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now

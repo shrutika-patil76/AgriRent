@@ -49,7 +49,9 @@ const seedDatabase = async () => {
         role: 'owner',
         phone: '+91-9876543211',
         address: 'Miraj, Maharashtra, India',
-        coordinates: { latitude: 16.8186, longitude: 74.7597 }
+        coordinates: { latitude: 16.8186, longitude: 74.7597 },
+        upiId: 'amit.singh@upi',
+        paymentQR: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
       },
       {
         name: 'Suresh Patel',
@@ -67,7 +69,9 @@ const seedDatabase = async () => {
         role: 'owner',
         phone: '+91-9876543213',
         address: 'Tasgaon, Maharashtra, India',
-        coordinates: { latitude: 16.9500, longitude: 74.8000 }
+        coordinates: { latitude: 16.9500, longitude: 74.8000 },
+        upiId: 'ramesh.verma@upi',
+        paymentQR: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
       },
       {
         name: 'Admin User',
@@ -85,7 +89,9 @@ const seedDatabase = async () => {
         role: 'owner',
         phone: '+91-9876543215',
         address: 'Arag, Maharashtra, India',
-        coordinates: { latitude: 16.6500, longitude: 74.3500 }
+        coordinates: { latitude: 16.6500, longitude: 74.3500 },
+        upiId: 'vijay.sharma@upi',
+        paymentQR: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
       },
       {
         name: 'Shrutika Patil',
@@ -94,7 +100,9 @@ const seedDatabase = async () => {
         role: 'owner',
         phone: '+91-9876543216',
         address: 'Ichalkaranji, Maharashtra, India',
-        coordinates: { latitude: 16.6833, longitude: 75.1333 }
+        coordinates: { latitude: 16.6833, longitude: 75.1333 },
+        upiId: 'shrutika.patil@upi',
+        paymentQR: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
       }
     ]);
     console.log(`✅ Created ${users.length} users`);
@@ -304,7 +312,10 @@ const seedDatabase = async () => {
         totalAmount: 10000,
         deposit: 10000,
         status: 'confirmed',
-        paymentStatus: 'paid'
+        paymentStatus: 'pending',
+        depositPaid: false,
+        rentPaid: false,
+        remainingAmount: 20000
       },
       {
         user: farmer2._id,
@@ -315,7 +326,10 @@ const seedDatabase = async () => {
         totalAmount: 25000,
         deposit: 20000,
         status: 'pending',
-        paymentStatus: 'pending'
+        paymentStatus: 'pending',
+        depositPaid: false,
+        rentPaid: false,
+        remainingAmount: 45000
       },
       {
         user: farmer1._id,
@@ -326,7 +340,10 @@ const seedDatabase = async () => {
         totalAmount: 1600,
         deposit: 3000,
         status: 'completed',
-        paymentStatus: 'paid'
+        paymentStatus: 'rent_paid',
+        depositPaid: true,
+        rentPaid: true,
+        remainingAmount: 0
       },
       {
         user: farmer2._id,
@@ -337,7 +354,10 @@ const seedDatabase = async () => {
         totalAmount: 6000,
         deposit: 8000,
         status: 'ongoing',
-        paymentStatus: 'paid'
+        paymentStatus: 'rent_paid',
+        depositPaid: true,
+        rentPaid: true,
+        remainingAmount: 0
       },
       {
         user: farmer1._id,
@@ -348,7 +368,10 @@ const seedDatabase = async () => {
         totalAmount: 3600,
         deposit: 5000,
         status: 'confirmed',
-        paymentStatus: 'paid'
+        paymentStatus: 'pending',
+        depositPaid: false,
+        rentPaid: false,
+        remainingAmount: 8600
       }
     ]);
     console.log(`✅ Created ${bookings.length} bookings`);
