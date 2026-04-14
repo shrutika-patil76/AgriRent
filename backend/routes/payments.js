@@ -203,7 +203,7 @@ router.post('/verify-rent-payment', auth, async (req, res) => {
   try {
     const { bookingId, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
 
-    const booking = await Booking.findById(bookingId);
+    const booking = await Booking.findById(bookingId).populate('tool').populate('user');
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
@@ -217,6 +217,20 @@ router.post('/verify-rent-payment', auth, async (req, res) => {
     await booking.save();
 
     console.log(`✅ Rent payment verified for booking ${bookingId}`);
+    
+    // Send email notifications
+    const { sendRentPaymentConfirmationEmail, sendRentPaymentNotificationToOwner } = require('../utils/emailService');
+    const User = require('../models/User');
+    
+    const farmer = booking.user;
+    const tool = booking.tool;
+    const owner = await User.findById(tool.owner);
+    
+    // Send confirmation to farmer
+    await sendRentPaymentConfirmationEmail(booking, farmer, tool, owner);
+    
+    // Send notification to owner
+    await sendRentPaymentNotificationToOwner(booking, farmer, tool, owner);
     
     res.json({
       success: true,

@@ -585,14 +585,6 @@ AgriRent Team
   }
 };
 
-module.exports = {
-  sendBookingConfirmationEmail,
-  sendBookingRejectionEmail,
-  sendFarmerCancellationEmail,
-  sendFarmerCancellationConfirmationEmail,
-  sendBookingRequestEmail
-};
-
 // Send deposit payment confirmation to farmer
 const sendDepositPaymentConfirmationEmail = async (booking, farmer, tool, owner) => {
   const transporter = createTransporter();
@@ -753,6 +745,168 @@ const sendDepositPaymentNotificationToOwner = async (booking, farmer, tool, owne
   }
 };
 
+// Send rent payment confirmation to farmer
+const sendRentPaymentConfirmationEmail = async (booking, farmer, tool, owner) => {
+  const transporter = createTransporter();
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER || 'noreply@agrirent.com',
+    to: farmer.email,
+    subject: '✅ Rent Payment Confirmed - AgriRent',
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: #28a745; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background: #f9f9f9; padding: 20px; border: 1px solid #ddd; }
+    .details { background: white; padding: 15px; margin: 15px 0; border-left: 4px solid #28a745; }
+    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    .amount { font-size: 18px; font-weight: bold; color: #28a745; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>✅ Rent Payment Confirmed!</h1>
+    </div>
+    <div class="content">
+      <p>Dear <strong>${farmer.name}</strong>,</p>
+      <p>Your rental payment has been successfully received and confirmed!</p>
+      
+      <div class="details">
+        <h3>💰 Payment Details</h3>
+        <p><strong>Amount Paid:</strong> <span class="amount">₹${booking.totalAmount}</span></p>
+        <p><strong>Payment Type:</strong> Rental Payment</p>
+        <p><strong>Booking ID:</strong> ${booking._id}</p>
+      </div>
+
+      <div class="details">
+        <h3>📋 Booking Information</h3>
+        <p><strong>Equipment:</strong> ${tool.name}</p>
+        <p><strong>Rental Period:</strong> ${new Date(booking.startDate).toLocaleDateString()} - ${new Date(booking.endDate).toLocaleDateString()}</p>
+        <p><strong>Total Days:</strong> ${booking.totalDays}</p>
+      </div>
+
+      <div class="details">
+        <h3>👤 Owner Contact</h3>
+        <p><strong>Name:</strong> ${owner.name}</p>
+        <p><strong>Phone:</strong> ${owner.phone}</p>
+      </div>
+
+      <div class="details">
+        <h3>📝 Next Steps</h3>
+        <ul>
+          <li>All payments are now complete</li>
+          <li>Your security deposit (₹${booking.deposit}) will be refunded after equipment return</li>
+          <li>Please return the equipment in good condition by ${new Date(booking.endDate).toLocaleDateString()}</li>
+          <li>Contact the owner to arrange equipment return</li>
+        </ul>
+      </div>
+
+      <p>Thank you for using AgriRent!</p>
+    </div>
+    <div class="footer">
+      <p>Best regards,<br>AgriRent Team</p>
+    </div>
+  </div>
+</body>
+</html>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Rent payment confirmation email sent to farmer');
+  } catch (error) {
+    console.error('❌ Email sending failed:', error.message);
+  }
+};
+
+// Send rent payment notification to owner
+const sendRentPaymentNotificationToOwner = async (booking, farmer, tool, owner) => {
+  const transporter = createTransporter();
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER || 'noreply@agrirent.com',
+    to: owner.email,
+    subject: '💰 Rent Payment Received - AgriRent',
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: #667eea; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background: #f9f9f9; padding: 20px; border: 1px solid #ddd; }
+    .details { background: white; padding: 15px; margin: 15px 0; border-left: 4px solid #667eea; }
+    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    .amount { font-size: 18px; font-weight: bold; color: #667eea; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💰 Rent Payment Received!</h1>
+    </div>
+    <div class="content">
+      <p>Dear <strong>${owner.name}</strong>,</p>
+      <p>Great news! The farmer has paid the rental amount for your equipment.</p>
+      
+      <div class="details">
+        <h3>💰 Payment Details</h3>
+        <p><strong>Amount Received:</strong> <span class="amount">₹${booking.totalAmount}</span></p>
+        <p><strong>Payment Type:</strong> Rental Payment</p>
+        <p><strong>Booking ID:</strong> ${booking._id}</p>
+        <p><strong>Total Received:</strong> ₹${booking.deposit + booking.totalAmount} (Deposit + Rent)</p>
+      </div>
+
+      <div class="details">
+        <h3>🚜 Equipment Details</h3>
+        <p><strong>Equipment:</strong> ${tool.name}</p>
+        <p><strong>Rental Period:</strong> ${new Date(booking.startDate).toLocaleDateString()} - ${new Date(booking.endDate).toLocaleDateString()}</p>
+        <p><strong>Total Days:</strong> ${booking.totalDays}</p>
+      </div>
+
+      <div class="details">
+        <h3>👤 Farmer Details</h3>
+        <p><strong>Name:</strong> ${farmer.name}</p>
+        <p><strong>Phone:</strong> ${farmer.phone}</p>
+        <p><strong>Email:</strong> ${farmer.email}</p>
+      </div>
+
+      <div class="details">
+        <h3>📝 Next Steps</h3>
+        <ul>
+          <li>All payments are now complete</li>
+          <li>Ensure the equipment is available for the rental period</li>
+          <li>After the rental period ends, inspect the equipment</li>
+          <li>Refund the security deposit (₹${booking.deposit}) if equipment is in good condition</li>
+        </ul>
+      </div>
+
+      <p>Thank you for using AgriRent!</p>
+    </div>
+    <div class="footer">
+      <p>Best regards,<br>AgriRent Team</p>
+    </div>
+  </div>
+</body>
+</html>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Rent payment notification email sent to owner');
+  } catch (error) {
+    console.error('❌ Email sending failed:', error.message);
+  }
+};
+
 module.exports = {
   sendBookingConfirmationEmail,
   sendBookingRejectionEmail,
@@ -760,5 +914,7 @@ module.exports = {
   sendFarmerCancellationConfirmationEmail,
   sendBookingRequestEmail,
   sendDepositPaymentConfirmationEmail,
-  sendDepositPaymentNotificationToOwner
+  sendDepositPaymentNotificationToOwner,
+  sendRentPaymentConfirmationEmail,
+  sendRentPaymentNotificationToOwner
 };

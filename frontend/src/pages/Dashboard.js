@@ -566,11 +566,83 @@ const Dashboard = () => {
                                 Cancel
                               </Button>
                             )}
-                            {booking.status === 'cancelled' && (
-                              <span className="text-danger small">Cancelled</span>
+                            {booking.status === 'confirmed' && !booking.depositPaid && (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  variant="success"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    console.log('Pay Deposit clicked', booking);
+                                    setSelectedBookingForPayment(booking);
+                                    setPaymentType('deposit');
+                                    setShowPaymentModal(true);
+                                    console.log('Modal state set to true');
+                                  }}
+                                >
+                                  Pay Deposit
+                                </Button>
+                                <div className="text-warning small mt-1">
+                                  <small>⏳ Deposit Pending</small>
+                                </div>
+                              </>
                             )}
-                            {['confirmed', 'ongoing', 'completed'].includes(booking.status) && (
-                              <span className="text-muted">-</span>
+                            {booking.status === 'confirmed' && booking.depositPaid && !booking.rentPaid && (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  variant="info"
+                                  onClick={() => {
+                                    setSelectedBookingForPayment(booking);
+                                    setPaymentType('rent');
+                                    setShowPaymentModal(true);
+                                  }}
+                                >
+                                  Pay Rent
+                                </Button>
+                                <div className="text-success small mt-1">
+                                  <small>✅ Deposit Paid</small>
+                                </div>
+                              </>
+                            )}
+                            {booking.depositPaid && booking.rentPaid && (
+                              <div className="text-success">
+                                <small>✅ Deposit Paid</small><br/>
+                                <small>✅ Rent Paid</small>
+                              </div>
+                            )}
+                            {booking.status === 'cancelled' && (
+                              <span className="text-muted">Cancelled</span>
+                            )}
+                            {booking.status === 'ongoing' && !booking.rentPaid && (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  variant="info"
+                                  onClick={() => {
+                                    setSelectedBookingForPayment(booking);
+                                    setPaymentType('rent');
+                                    setShowPaymentModal(true);
+                                  }}
+                                >
+                                  Pay Rent
+                                </Button>
+                                <div className="text-warning small mt-1">
+                                  <small>⏳ Rent Pending</small>
+                                </div>
+                              </>
+                            )}
+                            {booking.status === 'ongoing' && booking.rentPaid && (
+                              <div className="text-success">
+                                <small>✅ All Paid</small>
+                              </div>
+                            )}
+                            {booking.status === 'completed' && (
+                              <div className="text-success">
+                                <small>✅ All Paid</small><br/>
+                                <small>🎉 Completed</small>
+                              </div>
                             )}
                           </td>
                         </tr>
