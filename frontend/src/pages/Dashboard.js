@@ -182,11 +182,11 @@ const Dashboard = () => {
       <Container fluid className="py-5 dashboard-container">
         {/* Header Section */}
         <div className="text-center mb-5">
-          <h1 className="fw-bold display-4 mb-2">
-            {user?.role === 'farmer' ? '📅 My Bookings' : '🚜 My Equipment'}
-        </h1>
-        <p className="text-muted fs-5">Welcome back, {user?.name}!</p>
-      </div>
+          <h1 className="fw-bold display-4 mb-2 section-header">
+            {user?.role === 'farmer' ? 'My Bookings' : 'Equipment Management'}
+          </h1>
+          <p className="text-muted fs-5">Welcome back, {user?.name}</p>
+        </div>
 
       {user?.role === 'farmer' ? (
         <>
@@ -228,17 +228,21 @@ const Dashboard = () => {
 
           {/* Bookings Table */}
           <Card className="border-0 shadow-sm">
-            <Card.Header className="border-0 py-4" style={{ background: '#f8f9fa' }}>
-              <h5 className="mb-0 fw-bold" style={{ color: '#000000', fontSize: '1.25rem' }}>
-                <FaCalendarAlt className="me-2" style={{ color: '#667eea' }} />
+            <Card.Header className="border-0 py-4" style={{ 
+              background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+              color: 'white'
+            }}>
+              <h5 className="mb-0 fw-bold" style={{ color: 'white' }}>
+                <FaCalendarAlt className="me-2" style={{ color: 'white' }} />
                 Your Bookings
               </h5>
             </Card.Header>
             <Card.Body className="p-0">
               {bookings.length === 0 ? (
                 <div className="text-center py-5">
-                  <FaCalendarAlt className="text-muted" style={{ fontSize: '3rem' }} />
-                  <p className="text-muted mt-3">No bookings yet. Start exploring equipment!</p>
+                  <FaCalendarAlt className="text-muted mb-3" style={{ fontSize: '3rem', opacity: 0.3 }} />
+                  <p className="text-muted mt-3 fs-5">No bookings yet</p>
+                  <p className="text-muted">Start exploring equipment to make your first booking</p>
                 </div>
               ) : (
                 <div className="table-responsive">
@@ -363,9 +367,12 @@ const Dashboard = () => {
           {/* Booking Requests Section */}
           {ownerBookings && ownerBookings.length > 0 && (
             <Card className="border-0 shadow-sm mb-5">
-              <Card.Header className="border-0 py-4" style={{ background: '#f8f9fa' }}>
-                <h5 className="mb-0 fw-bold" style={{ color: '#000000', fontSize: '1.25rem' }}>
-                  <FaCalendarAlt className="me-2" style={{ color: '#667eea' }} />
+              <Card.Header className="border-0 py-4" style={{ 
+                background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                color: 'white'
+              }}>
+                <h5 className="mb-0 fw-bold" style={{ color: 'white' }}>
+                  <FaCalendarAlt className="me-2" style={{ color: 'white' }} />
                   Booking Requests
                 </h5>
               </Card.Header>
@@ -507,9 +514,12 @@ const Dashboard = () => {
           {/* My Bookings as Farmer Section */}
           {bookings && bookings.length > 0 && (
             <Card className="border-0 shadow-sm mb-5">
-              <Card.Header className="border-0 py-4" style={{ background: '#f8f9fa' }}>
-                <h5 className="mb-0 fw-bold" style={{ color: '#000000', fontSize: '1.25rem' }}>
-                  <FaCalendarAlt className="me-2" style={{ color: '#667eea' }} />
+              <Card.Header className="border-0 py-4" style={{ 
+                background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                color: 'white'
+              }}>
+                <h5 className="mb-0 fw-bold" style={{ color: 'white' }}>
+                  <FaCalendarAlt className="me-2" style={{ color: 'white' }} />
                   My Bookings (As Farmer)
                 </h5>
               </Card.Header>
@@ -656,7 +666,10 @@ const Dashboard = () => {
 
           {/* My Equipment Section */}
           <div className="text-center mb-5">
-            <h3 className="fw-bold display-6 mb-4"><FaTools className="me-2" />My Equipment</h3>
+            <h3 className="fw-bold display-6 mb-4 section-header">
+              <FaTools className="me-2" />
+              My Equipment
+            </h3>
             <Button 
               variant="primary" 
               size="lg"
@@ -670,8 +683,11 @@ const Dashboard = () => {
           <Row className="g-4">
             {tools.length === 0 ? (
               <Col xs={12} className="text-center py-5">
-                <FaTools className="text-muted" style={{ fontSize: '3rem' }} />
-                <p className="text-muted mt-3 fs-5">No equipment listed yet. Add your first equipment!</p>
+                <div className="empty-state">
+                  <FaTools className="text-muted mb-3" style={{ fontSize: '4rem', opacity: 0.3 }} />
+                  <p className="text-muted mt-3 fs-5">No equipment listed yet</p>
+                  <p className="text-muted">Add your first equipment to start renting</p>
+                </div>
               </Col>
             ) : (
               tools.map(tool => (

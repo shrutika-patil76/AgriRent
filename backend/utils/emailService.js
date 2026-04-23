@@ -70,7 +70,7 @@ const sendBookingConfirmationEmail = async (booking, user, tool, owner) => {
   const mailOptions = {
     from: process.env.EMAIL_USER || 'noreply@agrirent.com',
     to: user.email,
-    subject: '✅ Booking Confirmed - Payment Required - AgriRent',
+    subject: 'Booking Confirmed - Payment Required | AgriRent',
     text: `
 Dear ${user.name},
 

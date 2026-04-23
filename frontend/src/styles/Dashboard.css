@@ -1,8 +1,9 @@
 /* Dashboard Styles */
 
 .dashboard-container {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #f0f9f4 0%, #e8f5e9 100%);
   min-height: 100vh;
+  font-family: 'Inter', sans-serif;
 }
 
 /* Stat Cards */
@@ -14,17 +15,19 @@
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 10px 25px rgba(40, 167, 69, 0.15) !important;
 }
 
 .stat-number {
   font-size: 2.5rem;
   font-weight: 700;
+  color: #2c3e50;
 }
 
 .stat-label {
   font-size: 0.95rem;
   font-weight: 500;
+  color: #6c757d;
 }
 
 /* Equipment Cards */
@@ -36,7 +39,7 @@
 
 .equipment-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 15px 35px rgba(40, 167, 69, 0.2) !important;
 }
 
 .equipment-image-container {
@@ -59,7 +62,7 @@
 .equipment-image-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
 }
 
 /* Table Styles */
@@ -68,11 +71,17 @@
 }
 
 .table thead {
-  background-color: #f8f9fa;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white !important;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.85rem;
   letter-spacing: 0.5px;
+}
+
+.table thead th {
+  color: white !important;
+  border: none;
 }
 
 .table tbody tr {
@@ -81,7 +90,7 @@
 }
 
 .table tbody tr:hover {
-  background-color: #f8f9fa;
+  background-color: #f0f9f4;
 }
 
 .table tbody tr.table-danger {
@@ -94,8 +103,8 @@
 
 /* Card Headers */
 .bg-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+  color: white !important;
 }
 
 .bg-gradient h5 {
@@ -105,6 +114,10 @@
 }
 
 .bg-gradient h5 svg {
+  color: white !important;
+}
+
+.bg-gradient .fw-bold {
   color: white !important;
 }
 
@@ -122,33 +135,58 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   border: none;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 15px rgba(40, 167, 69, 0.4);
+  background: linear-gradient(135deg, #218838 0%, #1aa179 100%);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   border: none;
 }
 
 .btn-success:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(17, 153, 142, 0.4);
+  box-shadow: 0 8px 15px rgba(40, 167, 69, 0.4);
+  background: linear-gradient(135deg, #218838 0%, #1aa179 100%);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  border: none;
+}
+
+.btn-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(23, 162, 184, 0.4);
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
   border: none;
 }
 
 .btn-danger:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(235, 51, 73, 0.4);
+  box-shadow: 0 8px 15px rgba(220, 53, 69, 0.4);
+}
+
+.btn-outline-primary {
+  border: 2px solid #28a745;
+  color: #28a745;
+  background: transparent;
+}
+
+.btn-outline-primary:hover {
+  background: #28a745;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(40, 167, 69, 0.3);
 }
 
 /* Modal Styles */
@@ -159,7 +197,12 @@
 }
 
 .modal-header {
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 2px solid #e8f5e9;
+  background: linear-gradient(135deg, #f0f9f4 0%, #e8f5e9 100%);
+}
+
+.modal-header .btn-close {
+  filter: none;
 }
 
 /* Form Styles */
@@ -173,8 +216,14 @@
 
 .form-control:focus,
 .form-select:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  border-color: #28a745;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.form-label {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
 }
 
 /* Empty State */
@@ -185,8 +234,44 @@
 
 .empty-state-icon {
   font-size: 4rem;
-  color: #ccc;
+  color: #c8e6c9;
   margin-bottom: 1rem;
+}
+
+/* Status Indicators */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-indicator.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-indicator.confirmed {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-indicator.ongoing {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.status-indicator.completed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-indicator.cancelled {
+  background: #f8d7da;
+  color: #721c24;
 }
 
 /* Responsive */
@@ -243,4 +328,77 @@
 
 .gap-2 {
   gap: 0.5rem;
+}
+
+/* Custom Green Theme Colors */
+.text-primary-green {
+  color: #28a745 !important;
+}
+
+.bg-primary-green {
+  background-color: #28a745 !important;
+}
+
+.border-primary-green {
+  border-color: #28a745 !important;
+}
+
+/* Section Headers */
+.section-header {
+  color: #2c3e50;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+.section-header svg {
+  color: #28a745;
+}
+
+/* Card Enhancements */
+.card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+  border: none;
+  padding: 1.25rem 1.5rem;
+  color: white !important;
+}
+
+.card-header h5 {
+  color: white !important;
+  margin: 0;
+  font-weight: 700;
+}
+
+.card-header h5 svg {
+  color: white !important;
+}
+
+.card-header * {
+  color: white !important;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Badge Customization */
+.badge.bg-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+}
+
+.badge.bg-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%) !important;
+}
+
+.badge.bg-info {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+}
+
+.badge.bg-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
 }
